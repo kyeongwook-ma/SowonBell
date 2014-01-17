@@ -1,0 +1,125 @@
+package ma.dev.sowondejong.data;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.google.gson.Gson;
+
+public class SowonMessage implements Parcelable {
+	
+	private String userId, from, to, message, type, date;
+	private boolean isPrivate;
+	private Img img = new Img();
+	private int _id;
+
+	public SowonMessage( String userId, String from, String to, String message, String type, String date, boolean isPrivate ) {
+		this.userId = userId;
+		this.from = from;
+		this.to = to;
+		this.message = message;
+		this.setType(type);
+		this.isPrivate = isPrivate;
+		this.date = date;
+	}
+	
+	public SowonMessage(String from, String to, String message, String date, String imgPath) {
+		this.from = from;
+		this.to = to;
+		this.message = message;
+		this.date = date;		
+		this.img.setName(imgPath);
+	}
+
+	public SowonMessage(Parcel src) {
+		from = src.readString();
+		to = src.readString();
+		message = src.readString();
+		date = src.readString();
+		img.setName(src.readString());
+	}
+
+	public String getFrom() {
+		return from;
+	}
+
+	public String getTo() {
+		return to;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+	
+	public void setMessage(String msg) {
+		this.message = msg;
+	}
+	
+	public String getJson() {
+		return new Gson().toJson(this);
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	public Img getImg() {
+		return img;
+	}
+
+	public void setImg(Img img) {
+		this.img = img;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getDate() {
+		return date;
+	}
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel parcel, int flags) {
+		parcel.writeString(from);		
+		parcel.writeString(to);
+		parcel.writeString(date);
+		parcel.writeString(img.getName());
+		
+	}
+	
+	public int getId() {
+		return _id;
+	}
+
+	public void setId(int _id) {
+		this._id = _id;
+	}
+
+	public static Parcelable.Creator<SowonMessage> CREATOR = new Creator<SowonMessage>() {
+
+		@Override
+		public SowonMessage[] newArray(int size) {
+			return new SowonMessage[size];
+		}
+
+		@Override
+		public SowonMessage createFromParcel(Parcel src) {
+			return new SowonMessage(src);
+		}
+	};
+
+}

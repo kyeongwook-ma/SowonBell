@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">소원대종</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="server_error">서버에 오류가 발생하였습니다. 잠시 후 다시 시도해주시고 이와 같은 현상이 지속된다면 관리자에게 문의하여주십시오.</string>
+    <string name="login_using_activity">Login using Activity</string>
+    <string name="login_using_custom_fragment">Login using Custom Fragment</string>
+    <string name="login_using_usersettingsfragment">Login using UserSettingsFragment</string>
+    <string name="hello">Hello World, SessionLoginSampleActivity!</string>
+    <string name="login">Login</string>
+    <string name="instructions">Login to create a link to fetch account data</string>
+    <string name="logout">Log out</string>
+    <string name="app_id">1421945591370394</string>
+    
+</resources>

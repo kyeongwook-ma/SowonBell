@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/wish_bg" >
+
+    <LinearLayout
+        android:id="@+id/frg_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/tv_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="'소원대종'은 한국의 전통 종소리를 들으며 소원을 기원하는 앱입니다. 무려 1200년 전 만들어진 국보 제29호 에밀레종(성덕대왕 신종)을 최초로 디지털로 복원해 그 깊고 웅장한 소리를 모바일에서 들을 수 있습니다. 힘들고 지칠 때, 국가의 안녕을 기원할 때 심금을 울리는 에밀레종을 한 번씩 울려주세요. 간절하게 바라면 소원이 이루어집니다."
+			android:ellipsize="marquee"
+
+            android:textSize="20sp" />
+
+        <ImageView
+            android:id="@+id/iv_info_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/info_logo" />
+
+        <TextView
+            android:id="@+id/tv_hompi_link"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="5dp"
+            android:text="dndmedia.co.kr"
+            android:textColor="#999999" />
+
+    </LinearLayout>
+
+</LinearLayout>

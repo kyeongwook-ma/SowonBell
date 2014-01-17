@@ -1,0 +1,72 @@
+//package ma.dev.sowondejong.view;
+//
+//import ma.dev.sowondejong.R;
+//import ma.dev.sowondejong.activity.SowonSendActivity;
+//import android.app.DialogFragment;
+//import android.content.Intent;
+//import android.os.Bundle;
+//import android.view.LayoutInflater;
+//import android.view.View;
+//import android.view.View.OnClickListener;
+//import android.view.ViewGroup;
+//import android.widget.ImageView;
+//
+//import com.actionbarsherlock.app.SherlockDialogFragment;
+//
+//public class RecieveProtocolDialog extends SherlockDialogFragment implements OnClickListener {
+//
+//	private ImageView selPhone, selKakao;
+//	private static final int PICK_CONTACT = 0;
+//	String phoneNumber,name;
+//	public RecieveProtocolDialog() {
+//		setStyle(DialogFragment.STYLE_NO_TITLE, 0);	
+//	}
+//
+//
+//	@Override
+//	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+//			Bundle savedInstanceState) {
+//
+//		View v = inflater.inflate(R.layout.receive_protocol_dialog, null);
+//
+//		selPhone = (ImageView)v.findViewById(R.id.iv_sel_phone);
+//		selPhone.setOnClickListener(this);
+//
+//		selKakao = (ImageView)v.findViewById(R.id.iv_sel_kakao);
+//		selKakao.setOnClickListener(this);
+//
+//		
+//
+//		return v;
+//	}
+//
+//	@Override
+//	public void onClick(View v) {
+//
+//		Intent i;
+//
+//		switch(v.getId()) {
+//
+//		case R.id.iv_sel_phone :
+//
+//			i = new Intent(getActivity(), SowonSendActivity.class);
+//			i.putExtra("mode", "SMS");
+//			startActivity(i);
+//
+//			dismiss();
+//
+//			break;
+//		case R.id.iv_sel_kakao :
+//			i = new Intent(getActivity(), SowonSendActivity.class);
+//			i.putExtra("mode", "KAKAO");
+//			startActivity(i);
+//			dismiss();
+//
+//			break;	
+//
+//		
+//		}
+//
+//	}
+//
+//}

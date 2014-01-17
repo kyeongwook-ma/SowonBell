@@ -1,0 +1,425 @@
+package ma.dev.sowondejong.activity;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import ma.dev.sowondejong.R;
+import ma.dev.sowondejong.data.CropOption;
+import ma.dev.sowondejong.data.CropOptionAdapter;
+import ma.dev.sowondejong.data.Img;
+import ma.dev.sowondejong.data.SowonMessage;
+import ma.dev.sowondejong.db.DBHelper;
+import ma.dev.sowondejong.db.SowonDB.SowonDBScheme;
+import ma.dev.sowondejong.network.NetworkController;
+import ma.dev.sowondejong.network.NetworkRequest;
+import ma.dev.sowondejong.network.NetworkRequest.OnProcessCompletedListener;
+import ma.dev.sowondejong.network.UploadSowonRequest;
+import ma.dev.sowondejong.util.ImageUtil;
+import ma.dev.sowondejong.util.KakaoLink;
+import ma.dev.sowondejong.util.SMSUtil;
+import ma.dev.sowondejong.util.SowonAccountManager;
+import ma.dev.sowondejong.util.StringUtil;
+import ma.dev.sowondejong.view.PhraseRowView.OnPhraseClickListener;
+import ma.dev.sowondejong.view.PhraseSelectDialog;
+import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
+import android.provider.ContactsContract;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.RotateAnimation;
+import android.view.animation.TranslateAnimation;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+
+public class SowonSendActivity extends SherlockFragmentActivity implements OnClickListener{
+
+
+	private static final int PICK_CONTACT = 0;
+	private static final int PICK_FROM_CAMERA = 1;
+	private static final int PICK_FROM_FILE = 2;
+
+	public enum SEND_MODE { SMS, KAKAO, FACEBOOK };
+	private SEND_MODE sendMode;
+	private ImageView ivJong, ivSendImg;
+	private String userId, message, to, phoneNumber, name, path = "";
+	private TextView tvName, tvReceived;
+	private EditText edtContents;
+	private ImageView ivSend , ivCamera, ivGallery, ivPhrase;
+	private Context mContext = this;
+	private Uri imageCaptureUri;
+	private RelativeLayout sendRelativeLayout;
+
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		setContentView(R.layout.activity_send);
+
+		ivJong = (ImageView)findViewById(R.id.iv_send_jong);
+		ivJong.setAlpha(50);
+
+		tvName = (TextView)findViewById(R.id.tv_send_popup_to);
+		tvName.setOnClickListener(this);
+
+		tvReceived = (TextView)findViewById(R.id.tv_received_person);
+
+		edtContents = (EditText)findViewById(R.id.edt_send_sowon_contents);
+
+		ivSend = (ImageView)findViewById(R.id.iv_send);
+		ivSend.setOnClickListener(this);
+
+
+		ivCamera = (ImageView)findViewById(R.id.iv_send_camera);
+		ivCamera.setOnClickListener(this);
+
+		ivGallery = (ImageView)findViewById(R.id.iv_send_gallery);
+		ivGallery.setOnClickListener(this);
+
+		ivPhrase = (ImageView)findViewById(R.id.iv_send_phrase);
+		ivPhrase.setOnClickListener(this);
+
+		ivSendImg = (ImageView)findViewById(R.id.iv_send_img);
+
+		sendRelativeLayout = (RelativeLayout)findViewById(R.id.rl_send_tab_offset);
+
+		getIntentFromDialog();		
+
+	}
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+	
+		AnimationSet animationSet = new AnimationSet(true);
+		int offSet = sendRelativeLayout.getHeight();
+
+		RotateAnimation r = new RotateAnimation( -10f, 8f, ivJong.getWidth()/2, offSet ); // HERE 
+		r.setRepeatMode(Animation.REVERSE);
+		r.setRepeatCount(Animation.INFINITE);
+		r.setDuration(3000);
+		r.setFillAfter(true); //HERE
+		animationSet.addAnimation(r);
+
+		ivJong.setAnimation(animationSet);
+
+	}
+
+	private void getIntentFromDialog() {
+
+		Intent i = getIntent();
+
+		String mode = i.getStringExtra("mode");
+
+		if(mode.equals("KAKAO")) {
+			tvReceived.setText("");
+			sendMode = SEND_MODE.KAKAO;
+		} else if(mode.equals("SMS")) {
+			sendMode = SEND_MODE.SMS;
+			i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+			startActivityForResult(i, 0);			
+		}
+
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+
+		switch (requestCode) 
+		{   
+
+		case PICK_FROM_CAMERA :
+			// get bundle
+			try{
+				imageCaptureUri =  data.getData();
+
+				Cursor cur = getContentResolver().query(imageCaptureUri, null, null, null, null);
+
+				if( cur == null ) {
+					path = imageCaptureUri.getPath();
+					ivSendImg.setImageURI(imageCaptureUri);
+					return;
+				}
+
+				if(cur.moveToNext()) {
+
+					path = cur.getString(cur.getColumnIndex(MediaStore.MediaColumns.DATA));
+					imageCaptureUri = Uri.fromFile(new File(path));
+				} 
+
+			} catch(NullPointerException e) {}
+
+			break;
+
+
+		case PICK_FROM_FILE :
+
+			try {
+				imageCaptureUri = data.getData();
+				ivSendImg.setImageURI(imageCaptureUri);
+				path = ImageUtil.getRealPathFromURI(imageCaptureUri);
+
+			} catch(NullPointerException e) { e.printStackTrace(); }
+
+
+			break;
+
+		case PICK_CONTACT:
+
+			try {
+				Uri contactData = data.getData();
+				Cursor c = managedQuery(contactData, null, null, null, null);
+
+				if (c.moveToFirst()) {
+					String id =   
+							c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+
+					String hasPhone =
+							c.getString(c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
+
+					if (hasPhone.equalsIgnoreCase("1")) {
+						Cursor phones = getContentResolver().query( 
+								ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null, 
+								ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ id, 
+								null, null);
+						phones.moveToFirst();
+						phoneNumber = phones.getString(phones.getColumnIndex("data1"));
+						name = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+
+						tvName.setText(name);
+
+					}
+
+				}
+			} catch(NullPointerException e) {} 
+			break;
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+
+		Intent intent;
+
+		switch(v.getId()) {
+
+		case R.id.iv_send :
+
+			userId = SowonAccountManager.getUserId();
+			message = edtContents.getText().toString();
+			to = name;
+
+			if(StringUtil.isEmptyString(message)) {
+				Toast.makeText(mContext, "내용을 입력해 주세요", Toast.LENGTH_SHORT).show();
+				return;
+			}
+
+			if(StringUtil.isEmptyString(to)) {
+				to = "";
+			}
+
+			SowonMessage msg = new SowonMessage(
+					userId, 
+					userId, 
+					to,
+					message, 
+					sendMode.name(), 
+					StringUtil.getDateWithStrForm(), 
+					false);
+
+			try {
+				Bitmap origin = BitmapFactory.decodeFile(path);
+				Bitmap resized = ImageUtil.resizeBitmapImage(origin, 400);
+
+				byte[] imgByte = ImageUtil.bitmapToByteArray(resized);
+
+
+				Img img = new Img(path, Base64.encodeToString(imgByte, Base64.DEFAULT));
+				msg.setImg(img);
+
+			} catch(NullPointerException e) {}
+
+			uploadSowon(msg);
+			saveMySowonToDB(msg);
+
+			break;
+
+		case R.id.iv_send_camera :
+			intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+			imageCaptureUri = Uri.fromFile(new File(Environment
+					.getExternalStorageDirectory(), "tmp_avatar_"
+							+ String.valueOf(System.currentTimeMillis())
+							+ ".jpg"));
+
+			intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT,
+					imageCaptureUri);
+
+			try {
+				intent.putExtra("return-data", true);
+				startActivityForResult(intent, PICK_FROM_CAMERA);
+
+			} catch (ActivityNotFoundException e) {
+				e.printStackTrace();
+			}
+			break;
+
+		case R.id.iv_send_gallery :
+
+			intent = new Intent();
+
+			intent.setType("image/*");
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+
+			startActivityForResult(Intent.createChooser(intent,
+					"Complete action using"), PICK_FROM_FILE);
+
+			break;
+
+		case R.id.iv_send_phrase :
+			PhraseSelectDialog dlg = new PhraseSelectDialog();
+			dlg.setOnPhraseClickListener(new OnPhraseClickListener() {
+
+				@Override
+				public void onPhraseClick(String mData) {
+					edtContents.append("\n" + mData );
+				}
+			});
+
+			dlg.show(getSupportFragmentManager(), "phrase_select");			
+
+			break;
+
+		case R.id.tv_send_popup_to :
+			Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+			startActivityForResult(i, 0);			
+			break;
+
+		}
+
+	}
+
+	private void uploadSowon(SowonMessage msg) {
+
+		UploadSowonRequest uploadSowon = new UploadSowonRequest(msg);
+
+		NetworkController.getInstance().enqueue(uploadSowon); 
+
+		uploadSowon.setOnCompleteListener(new OnProcessCompletedListener() {
+
+			@Override
+			public void onCompleted(final NetworkRequest request) {
+
+				runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						String url = (String) request.getResult();
+
+						switch (sendMode) {
+						case KAKAO:
+							sendKakao(message, url);
+							break;
+						case SMS :	
+							new SMSUtil(SowonSendActivity.this).sendSMS(phoneNumber, message);
+							Toast.makeText(mContext, "문자메세지를 성공적으로 발송하였습니다.", 
+									Toast.LENGTH_SHORT).show();
+							break; 
+
+						default:
+							break;
+						}
+					}
+				});
+			}
+		});
+
+
+	}
+
+	private void saveMySowonToDB(SowonMessage msg) {
+		ContentValues cv = new ContentValues();
+
+		try {
+			cv.put(SowonDBScheme.COLUMN_FROM, msg.getFrom());
+			cv.put(SowonDBScheme.COLUMN_TO, msg.getTo());
+			cv.put(SowonDBScheme.COLUMN_DATE, msg.getDate());
+			cv.put(SowonDBScheme.COLUMN_SEND_TYPE, msg.getType());
+			cv.put(SowonDBScheme.COLUMN_MESSAGE, msg.getMessage());
+			cv.put(SowonDBScheme.COLUMN_IMG_PATH, msg.getImg().getName());
+
+		} catch(NullPointerException e) { cv.put(SowonDBScheme.COLUMN_IMG_PATH, ""); } 
+		finally { 
+
+			DBHelper.getInstance().insert(SowonDBScheme.TABLE_NAME, cv);
+		}
+	}
+
+	private void sendKakao(String message, String url) {
+
+		KakaoLink kakaoLink = KakaoLink.getLink(getApplicationContext());
+
+		// check, intent is available.
+		if (!kakaoLink.isAvailableIntent())
+			return;
+
+		/**
+		 * @param activity
+		 * @param url
+		 * @param message
+		 * @param appId
+		 * @param appVer
+		 * @param appName
+		 * @param encoding
+		 */
+		try {
+			kakaoLink.openKakaoLink(this, 
+					url, 
+					"새해 복 많이 받아~" + message, 
+					getPackageName(), 
+					getPackageManager().getPackageInfo(getPackageName(), 0).versionName, 
+					"소원대종"
+					, 
+					"UTF-8");
+		} catch (NameNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+
+
+}
+
+
+
+

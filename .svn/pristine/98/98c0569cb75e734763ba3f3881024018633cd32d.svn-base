@@ -1,0 +1,66 @@
+/*
+ * Copyright 2009-2013 by KLSoft Corp.,
+ * All rights reserved.
+ *
+ * This software is the confidential and proprietary information
+ * of KLSoft Corp. ("Confidential Information").
+ */
+package ma.dev.sowondejong.util;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.GregorianCalendar;
+
+/**
+ * 1. FileName	: StringUtil.java
+ * 2. Package	: ma.dev.sowondejong.util
+ * 3. Comments	:	
+ * 4. Author	: kyoung wook
+ * 5. DateTime	: 2013. 12. 15. 오후 7:46:11
+ * 6. History	:
+ * -----------------------------------------------------------------
+ *	Date		 |	Name			|	Comment
+ * -------------  -----------------   ------------------------------
+ * 2013. 12. 15.		 | kyoung wook			|	최초작성
+ * -----------------------------------------------------------------
+ */
+
+public class StringUtil {
+
+
+	public static boolean isEmptyString(String str) {
+		return (str == null || str.trim().length() == 0);
+	}
+	
+	public static String getIPAddr() {
+		InetAddress Address = null;
+		try {
+			Address = InetAddress.getLocalHost();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return Address.getHostAddress();
+	}
+	
+	public static String getDateWithStrForm() {
+		GregorianCalendar today = new GregorianCalendar ( );
+
+		int year = today.get ( today.YEAR );
+		int month = today.get ( today.MONTH ) + 1;
+		int day = today.get ( today.DAY_OF_MONTH ); 
+		int hour = today.get( today.HOUR );
+		int minuete = today.get( today.MINUTE );
+		int sec = today.get( today.SECOND);
+		int ampm = today.get ( today.AM_PM );
+		
+		String strAmpm;
+		
+		strAmpm = ampm  == 1 ? "PM" : "AM";
+
+		return new String( String.valueOf(year) +  "-" + String.valueOf(month)  
+				+ "-" + String.valueOf(day) + " " + String.valueOf(hour) 
+				+ ":" + String.valueOf(minuete)
+				+ ":" + String.valueOf(sec) 
+				+ " " + strAmpm);
+	}
+}

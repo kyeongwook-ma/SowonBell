@@ -1,0 +1,129 @@
+package ma.dev.sowondejong.activity;
+
+import ma.dev.sowondejong.R;
+import ma.dev.sowondejong.R.drawable;
+import ma.dev.sowondejong.util.BackPressCloseHandler;
+import ma.dev.sowondejong.util.MusicController;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
+
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+
+@SuppressLint("ValidFragment")
+public class MainActivity extends SherlockFragmentActivity implements OnClickListener {
+
+	private ImageView ivJong;
+	private ImageView btnEmile, btnSowon, btnSendedList;
+	private MusicController musicController;
+	private ImageView btnInfo, btnSend;
+	private BackPressCloseHandler backHandler;
+	private boolean isHitted;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		setContentView(R.layout.activity_main);
+
+		ivJong = (ImageView)findViewById( R.id.iv_jong );
+		ivJong.setOnClickListener(this);
+
+		ivJong.setImageResource(R.drawable.main_bell_so);
+
+		btnEmile = (ImageView)findViewById( R.id.btn_emile );
+		btnEmile.setOnClickListener(this);
+
+		btnSowon = (ImageView)findViewById( R.id.btn_sowon );
+		btnSowon.setOnClickListener(this);
+		btnSowon.setImageResource(R.drawable.main_bell_tab_so_selected);
+
+		btnInfo = (ImageView)findViewById(R.id.iv_info);
+		btnInfo.setOnClickListener(this);
+
+		btnSend = (ImageView)findViewById(R.id.iv_send_icon);
+		btnSend.setOnClickListener(this);
+
+		btnSendedList = (ImageView)findViewById(R.id.iv_sended_list);
+		btnSendedList.setOnClickListener(this);
+
+		musicController = new MusicController(this, R.raw.sowonbell2big);
+		backHandler = new BackPressCloseHandler(this);
+
+	}
+
+	@Override
+	public void onBackPressed() {
+		backHandler.onBackPressed();
+	}
+
+	@Override
+	public void onClick(View v) {
+
+		switch(v.getId())
+		{
+		case R.id.iv_sended_list :
+
+			startActivity(new Intent(MainActivity.this, SowonListActivity.class));
+			finish();
+			break;
+
+		case R.id.iv_jong :
+			AnimationSet animationSet = new AnimationSet(true);
+
+			if(!isHitted) {
+				musicController.play();	
+
+				RotateAnimation r = new RotateAnimation(-10f, 8f, ivJong.getWidth() /2, 0); // HERE 
+				r.setRepeatMode(Animation.REVERSE);
+				r.setRepeatCount(Animation.INFINITE);
+				r.setDuration(3000);
+				r.setFillAfter(true); //HERE
+				animationSet.addAnimation(r);
+
+				ivJong.startAnimation(animationSet);
+				isHitted = true;
+
+			} else {
+				ivJong.startAnimation(animationSet);
+				isHitted = false;
+			}
+			
+			break;
+
+		case R.id.btn_emile :
+
+			ivJong.setImageResource(R.drawable.main_bell_em);
+			btnEmile.setImageResource(R.drawable.main_bell_tab_em_selected);
+			btnSowon.setImageResource(R.drawable.main_bell_tab_so);
+
+			break;
+
+		case R.id.btn_sowon :
+
+			ivJong.setImageResource(drawable.main_bell_so);
+			btnEmile.setImageResource(R.drawable.main_bell_tab_em);
+			btnSowon.setImageResource(R.drawable.main_bell_tab_so_selected);
+
+			break;
+
+		case R.id.iv_info :
+			startActivity(new Intent(this, InfoActivity.class));
+			finish();
+			break;
+
+		case R.id.iv_send_icon : 
+			startActivity(new Intent(this, SowonSendActivity.class));
+			finish();
+			break;
+		}
+	}
+
+
+}
